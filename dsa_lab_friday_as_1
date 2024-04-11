@@ -1,0 +1,275 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function prototypes
+void create(int **arr, int *size);
+void display(int *arr, int size);
+int count(int size);
+void reverse(int *arr, int size);
+void indexOf(int *arr, int size, int element);
+void indexedElement(int *arr, int size, int index);
+void insert(int **arr, int *size, int element, int position);
+void delete(int **arr, int *size, int position);
+void merge(int **arr1, int *size1, int *arr2, int size2);
+void split(int **arr1, int *size1, int position);
+void sort(int *arr, int size);
+
+int main() {
+    int *arr = NULL;
+    int size = 0;
+    char choice;
+    int element, position;
+
+    do {
+        printf("\nMenu:\n");
+        printf("a) Create\n");
+        printf("b) Display\n");
+        printf("c) Count\n");
+        printf("d) Reverse\n");
+        printf("e) Index of element\n");
+        printf("f) Indexed element\n");
+        printf("g) Insert\n");
+        printf("h) Delete\n");
+        printf("i) Merge\n");
+        printf("j) Split\n");
+        printf("k) Sort\n");
+        printf("x) Exit\n");
+        printf("Enter your choice: ");
+        scanf(" %c", &choice);
+
+        switch(choice) {
+            case 'a':
+                create(&arr, &size);
+                break;
+            case 'b':
+                display(arr, size);
+                break;
+            case 'c':
+                printf("Total number of elements: %d\n", count(size));
+                break;
+            case 'd':
+                reverse(arr, size);
+                break;
+            case 'e':
+                printf("Enter element to find index: ");
+                scanf("%d", &element);
+                indexOf(arr, size, element);
+                break;
+            case 'f':
+                printf("Enter index to find element: ");
+                scanf("%d", &position);
+                indexedElement(arr, size, position);
+                break;
+            case 'g':
+                printf("Enter element to insert: ");
+                scanf("%d", &element);
+                printf("Enter position to insert: ");
+                scanf("%d", &position);
+                insert(&arr, &size, element, position);
+                break;
+            case 'h':
+                printf("Enter position to delete: ");
+                scanf("%d", &position);
+                delete(&arr, &size, position);
+                break;
+            case 'i': {
+                int *arr2 = NULL;
+                int size2 = 0;
+                create(&arr2, &size2);
+                merge(&arr, &size, arr2, size2);
+                free(arr2); // Free the memory allocated for the second array
+                break;
+            }
+            case 'j':
+                printf("Enter position to split: ");
+                scanf("%d", &position);
+                split(&arr, &size, position);
+                break;
+            case 'k':
+                sort(arr, size);
+                break;
+            case 'x':
+                printf("Exiting program.\n");
+                break;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    } while(choice != 'x');
+
+    // Free the dynamically allocated memory for the array before exiting
+    free(arr);
+
+    return 0;
+}
+
+void create(int **arr, int *size) {
+    int n;
+    printf("Enter the number of elements: ");
+    scanf("%d", &n);
+    
+    // Allocate memory for the new array
+    *arr = (int*)realloc(*arr, n * sizeof(int));
+    if (*arr == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+
+    *size = n;
+    printf("Enter %d elements:\n", n);
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &(*arr)[i]);
+    }
+}
+
+void display(int *arr, int size) {
+    printf("List: ");
+    for (int i = 0; i < size; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
+int count(int size) {
+    return size;
+}
+
+void reverse(int *arr, int size) {
+    int temp;
+    for (int i = 0; i < size / 2; i++) {
+        temp = arr[i];
+        arr[i] = arr[size - i - 1];
+        arr[size - i - 1] = temp;
+    }
+    printf("List reversed.\n");
+}
+
+void indexOf(int *arr, int size, int element) {
+    printf("Indices of element %d: ", element);
+    for (int i = 0; i < size; i++) {
+        if (arr[i] == element) {
+            printf("%d ", i);
+        }
+    }
+    printf("\n");
+}
+
+void indexedElement(int *arr, int size, int index) {
+    if (index >= 0 && index < size) {
+        printf("Element at index %d: %d\n", index, arr[index]);
+    } else {
+        printf("Invalid index.\n");
+    }
+}
+
+void insert(int **arr, int *size, int element, int position) {
+    if (position < 0 || position > *size) {
+        printf("Invalid position.\n");
+        return;
+    }
+
+    // Reallocate memory to accommodate the new element
+    *arr = (int*)realloc(*arr, (*size + 1) * sizeof(int));
+    if (*arr == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+
+    // Shift elements to the right to make space for the new element
+    for (int i = *size; i > position; i--) {
+        (*arr)[i] = (*arr)[i - 1];
+    }
+    (*arr)[position] = element;
+    (*size)++;
+    printf("Element %d inserted at position %d.\n", element, position);
+}
+
+void delete(int **arr, int *size, int position) {
+    if (position < 0 || position >= *size) {
+        printf("Invalid position.\n");
+        return;
+    }
+
+    // Shift elements to the left to remove the element at the specified position
+    for (int i = position; i < *size - 1; i++) {
+        (*arr)[i] = (*arr)[i + 1];
+    }
+
+    // Reallocate memory to remove the last element
+    *arr = (int*)realloc(*arr, (*size - 1) * sizeof(int));
+    if (*arr == NULL && *size > 1) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+
+    (*size)--;
+    printf("Element at position %d deleted.\n", position);
+}
+
+void merge(int **arr1, int *size1, int *arr2, int size2) {
+    // Reallocate memory to accommodate elements from both arrays
+    *arr1 = (int*)realloc(*arr1, (*size1 + size2) * sizeof(int));
+    if (*arr1 == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+
+    // Copy elements from the second array to the end of the first array
+    for (int i = 0; i < size2; i++) {
+        (*arr1)[*size1 + i] = arr2[i];
+    }
+
+    *size1 += size2;
+    printf("Arrays merged.\n");
+}
+
+void split(int **arr1, int *size1, int position) {
+    if (position < 0 || position >= *size1) {
+        printf("Invalid position.\n");
+        return;
+    }
+
+    // Allocate memory for the second array
+    int size2 = *size1 - position;
+    int *arr2 = (int*)malloc(size2 * sizeof(int));
+    if (arr2 == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+
+    // Copy elements from the specified position to the end of the first array to the second array
+    for (int i = 0; i < size2; i++) {
+        arr2[i] = (*arr1)[position + i];
+    }
+
+    // Reallocate memory for the first array to truncate it
+    *arr1 = (int*)realloc(*arr1, position * sizeof(int));
+    if (*arr1 == NULL && position > 0) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+
+    *size1 = position;
+    printf("Array split.\n");
+
+    // Display the second array
+    printf("Second array: ");
+    display(arr2, size2);
+
+    // Free the memory allocated for the second array
+    free(arr2);
+}
+
+void sort(int *arr, int size) {
+    // Using bubble sort algorithm
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = 0; j < size - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+    printf("List sorted.\n");
+}
+
